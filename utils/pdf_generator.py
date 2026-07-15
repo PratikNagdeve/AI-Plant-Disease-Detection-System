@@ -1,0 +1,232 @@
+from datetime import datetime
+
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    Image,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
+
+def generate_pdf(result, image_path, output_path):
+
+    styles = getSampleStyleSheet()
+
+    doc = SimpleDocTemplate(output_path)
+
+    story = []
+
+    # ======================================================
+    # Title
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>🌿 AI Plant Disease Detection Report</b>",
+            styles["Title"]
+        )
+    )
+
+    story.append(Spacer(1, 15))
+
+    # ======================================================
+    # Date & Time
+    # ======================================================
+
+    current_time = datetime.now().strftime("%d %B %Y | %I:%M %p")
+
+    story.append(
+        Paragraph(
+            f"<b>Date & Time:</b> {current_time}",
+            styles["BodyText"]
+        )
+    )
+
+    story.append(Spacer(1, 20))
+
+    # ======================================================
+    # Uploaded Image
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Uploaded Leaf Image</b>",
+            styles["Heading2"]
+        )
+    )
+
+    story.append(Spacer(1, 10))
+
+    leaf_image = Image(
+        image_path,
+        width=3 * inch,
+        height=3 * inch
+    )
+
+    story.append(leaf_image)
+
+    story.append(Spacer(1, 20))
+
+    # ======================================================
+    # Prediction Summary
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Prediction Summary</b>",
+            styles["Heading2"]
+        )
+    )
+
+    story.append(Spacer(1, 10))
+
+    table_data = [
+
+        ["Crop", result["crop"]],
+
+        ["Disease", result["disease"]],
+
+        ["Severity", result["severity"]],
+
+        ["Confidence", f"{result['confidence']}%"]
+
+    ]
+
+    table = Table(
+        table_data,
+        colWidths=[2 * inch, 4 * inch]
+    )
+
+    table.setStyle(
+
+        TableStyle(
+
+            [
+
+                ("BACKGROUND", (0, 0), (0, -1), colors.lightgreen),
+
+                ("GRID", (0, 0), (-1, -1), 1, colors.grey),
+
+                ("BOX", (0, 0), (-1, -1), 1, colors.black),
+
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+            ]
+
+        )
+
+    )
+
+    story.append(table)
+
+    story.append(Spacer(1, 20))
+
+    # ======================================================
+    # Description
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Description</b>",
+            styles["Heading2"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            result["description"],
+            styles["BodyText"]
+        )
+    )
+
+    story.append(Spacer(1, 15))
+
+    # ======================================================
+    # Causes
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Possible Causes</b>",
+            styles["Heading2"]
+        )
+    )
+
+    for cause in result["causes"]:
+
+        story.append(
+            Paragraph(
+                f"• {cause}",
+                styles["BodyText"]
+            )
+        )
+
+    story.append(Spacer(1, 15))
+
+    # ======================================================
+    # Treatment
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Treatment Recommendations</b>",
+            styles["Heading2"]
+        )
+    )
+
+    for treatment in result["treatment"]:
+
+        story.append(
+            Paragraph(
+                f"• {treatment}",
+                styles["BodyText"]
+            )
+        )
+
+    story.append(Spacer(1, 15))
+
+    # ======================================================
+    # Prevention
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<b>Preventive Measures</b>",
+            styles["Heading2"]
+        )
+    )
+
+    for prevention in result["prevention"]:
+
+        story.append(
+            Paragraph(
+                f"• {prevention}",
+                styles["BodyText"]
+            )
+        )
+
+    story.append(Spacer(1, 25))
+
+    # ======================================================
+    # Footer
+    # ======================================================
+
+    story.append(
+        Paragraph(
+            "<i>Generated by AI Plant Disease Detection System</i>",
+            styles["BodyText"]
+        )
+    )
+
+    doc.build(story)
